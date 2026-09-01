@@ -7,10 +7,17 @@ set -o nounset
 
 
 
-if [ -z "${POSTGRES_USER}" ]; then
+if [ -z "${POSTGRES_USER:-}" ]; then
     base_postgres_image_default_user='postgres'
     export POSTGRES_USER="${base_postgres_image_default_user}"
 fi
+
+for required_var in POSTGRES_PASSWORD POSTGRES_HOST POSTGRES_PORT POSTGRES_DB; do
+    if [ -z "${!required_var:-}" ]; then
+        >&2 echo "entrypoint: required environment variable ${required_var} is not set"
+        exit 1
+    fi
+done
 export DATABASE_URL="postgis://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}"
 
 postgres_ready() {
