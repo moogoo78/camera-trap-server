@@ -18,8 +18,7 @@ jobs:
           script: |
             cd camera-trap-server
             git pull origin main
-            #docker-compose -f compose.yml -f compose.prod.yml down && docker-compose -f compose.yml -f compose.prod.yml up --build -d
-            docker-compose -f compose.yml -f compose.prod.yml restart
+            docker-compose -f compose.yml -f compose.prod.yml up --build -d
       - name: Send custom JSON data to Slack workflow
         id: slack
         uses: slackapi/slack-github-action@v1.24.0
