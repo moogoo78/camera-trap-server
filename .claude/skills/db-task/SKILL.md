@@ -159,7 +159,7 @@ SELECT id, folder_name, deployment_id FROM taicat_deploymentjournal WHERE id IN 
 `<folder>/result.csv`，一筆一列，欄位:
 
 ```
-<taicat_deploymentjournal 的所有欄位，用快照的內容和順序> , process, is_success, process_time, note
+<taicat_deploymentjournal 的所有欄位，用快照的內容和順序> , process, is_success, process_time, note, swap_from_deployment, swap_to_deployment
 ```
 
 - 前面的欄位是**動作前的快照** (delete 的資料才留得下來)
@@ -167,6 +167,8 @@ SELECT id, folder_name, deployment_id FROM taicat_deploymentjournal WHERE id IN 
 - `is_success`: `true` / `false`，依步驟 3 查回來的結果填，不是依 script 有沒有噴錯
 - `process_time`: 執行當下時間，台灣時間 `YYYY-MM-DD HH:MM:SS`
 - `note`: 失敗原因；成功留空 (`is_success=false` 沒有原因等於沒紀錄，所以多這一欄)
+- `swap_from_deployment` / `swap_to_deployment`: 直接抄 `action-list.csv` 同一筆的值
+  (`{name} [{id}]`)，`delete` 兩欄留空。試算表第一列已有這兩欄，`gsheet.py` 依欄名對應，不用改
 
 CSV 存 UTF-8 (加 BOM)。`result.csv` 已經存在就往後接，不要覆蓋 — 重跑失敗的那幾筆時
 靠 `process_time` 分辨。
@@ -187,7 +189,7 @@ python3 -I .claude/skills/db-task/gsheet.py camera-trap-docs-*.json \
   不要自己想辦法繞過 (使用者要先把試算表分享給金鑰裡的 `client_email`，權限要是編輯者)。
 - 欄位依試算表第一列的名稱對應: `PROCESS_DATE` = task 資料夾名稱 (例如 `261002`)，
   `who` = `auto` (AI 執行的都填這個)，其餘欄位照 `result.csv`。
-- 只會往下新增，不會改既有的列。同一個 `id` + `process` + `is_success` 試算表裡已經有
+- 只會往下新增，不會改既有的列。同一個 `PROCESS_DATE` + `id` + `process` + `is_success` 試算表裡已經有
   就跳過，所以整份 `result.csv` 重送也不會重複。
 - 使用者說他已經手動貼過了，就不用再跑。
 

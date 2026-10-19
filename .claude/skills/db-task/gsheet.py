@@ -6,8 +6,8 @@
 
 append: add rows of a db-task result.csv to the end of TAB, matching columns by the
 sheet's header names. PROCESS_DATE = the task folder name (parent dir of RESULT_CSV),
-who = "auto". A row is skipped if the sheet already has the same id + process +
-is_success, so re-running is safe.
+who = "auto". A row is skipped if the sheet already has the same PROCESS_DATE + id +
+process + is_success, so re-running is safe.
 """
 import sys, os, csv, json, time, base64, subprocess, urllib.request, urllib.parse
 SCOPE = 'https://www.googleapis.com/auth/spreadsheets'
@@ -42,12 +42,12 @@ if __name__ == '__main__':
         sheet = call(tok, f'{base}/values/{q}').get('values', [])
         header = sheet[0]; col = {h: i for i, h in enumerate(header)}
         def cell(r, h): return r[col[h]] if h in col and col[h] < len(r) else ''
-        seen = {(cell(r, 'id'), cell(r, 'process'), cell(r, 'is_success').upper()) for r in sheet[1:]}
         date = os.path.basename(os.path.dirname(os.path.abspath(path)))
+        seen = {(cell(r, 'PROCESS_DATE'), cell(r, 'id'), cell(r, 'process'), cell(r, 'is_success').upper()) for r in sheet[1:]}
         out = []
         for r in csv.DictReader(open(path, encoding='utf-8-sig')):
             r['is_success'] = r['is_success'].upper()
-            if (r['id'], r['process'], r['is_success']) in seen:
+            if (date, r['id'], r['process'], r['is_success']) in seen:
                 print('skip (already in sheet):', r['id'], r['folder_name'], r['process']); continue
             r.update(PROCESS_DATE=date, who='auto')
             out.append([r.get(h, '') for h in header])
