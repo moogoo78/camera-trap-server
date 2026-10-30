@@ -1114,10 +1114,11 @@ def api_dashboard(request, chart):
     if chart == 'app_ver':
         # new version
         ver_dict = {}
-        dj_list = DeploymentJournal.objects.filter(num_of_images__gt=0).values('client_version').annotate(n=Sum('num_of_images')).order_by('client_version')
+        dj_list = DeploymentJournal.objects.filter(num_of_images__gt=0).exclude(client_version__isnull=True).exclude(client_version='').values('client_version').annotate(n=Sum('num_of_images')).order_by('client_version')
         for x in dj_list:
             s = x['client_version'].split('(')
-            ver_dict[f'APP-v{s[0]}'] = x['n']
+            key = f'APP-v{s[0].strip()}'
+            ver_dict[key] = ver_dict.get(key, 0) + x['n']
 
         # old version
         query = "SELECT split_part(memo, '/', 1) as version, COUNT(*) FROM taicat_image WHERE project_id=329 AND memo != '' AND annotation_seq = 0 GROUP BY version ORDER BY version;"
